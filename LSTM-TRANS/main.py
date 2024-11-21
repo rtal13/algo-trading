@@ -20,6 +20,8 @@ from scipy import stats
 from itertools import product
 import random
 import copy
+import math
+
 
 
 # ================================
@@ -105,8 +107,9 @@ def log_epoch_data(file_path, epoch, fold, train_loss, val_loss, train_rmse, val
     - train_loss, val_loss, etc.: Metrics to log.
     """
     # Generate timestamped filename
+    folder = get_plot_folder()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_path = f"{file_path}_{timestamp}.csv"
+    file_path = f"{folder}/{file_path}.csv"
 
     # Define data for the current epoch
     epoch_data = {
@@ -466,71 +469,46 @@ def save_plot(folder, y_actual, y_predicted, epoch, model_name, scaler):
 
     print(f"Plots saved: {plot_filename_actual}, {plot_filename_pip}")
 
-def train_model(model, optimizer, criterion, X_train, y_train, lambda1=0.8, lambda2=0.2):
+def train_model(model, optimizer, criterion, X_train, y_train):
     model.train()
     train_loss = 0.0
     y_train_pred, y_train_actual = [], []
-    alpha_values, beta_values, omega_values = [], [], []
 
     for i in tqdm(range(len(X_train)), desc="Training"):
         optimizer.zero_grad()
-        prediction, conditional_variance = model(X_train[i:i + 1])
+        prediction = model(X_train[i:i + 1])
 
-        # Weighted loss: Prediction loss + Volatility regularization
-        loss = lambda1 * criterion(prediction, y_train[i:i + 1]) + lambda2 * conditional_variance.mean()
+        loss = criterion(prediction, y_train[i:i + 1])
         loss.backward()
-        
+
         # Gradient clipping
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        
+
         optimizer.step()
         train_loss += loss.item()
 
         y_train_pred.append(prediction.detach().cpu().numpy().squeeze())
         y_train_actual.append(y_train[i].detach().cpu().numpy().squeeze())
 
-        # Collect GARCH parameters
-        alpha_values.append(model.alpha.item())
-        beta_values.append(model.beta.item())
-        omega_values.append(model.omega.item())
-
     train_loss /= len(X_train)
-    # Take the mean of the parameters over the epoch
-    train_alpha = np.mean(alpha_values)
-    train_beta = np.mean(beta_values)
-    train_omega = np.mean(omega_values)
+    return train_loss, np.array(y_train_pred), np.array(y_train_actual)
 
-    return train_loss, np.array(y_train_pred), np.array(y_train_actual), train_alpha, train_beta, train_omega
-
-def validate_model(model, criterion, X_val, y_val, lambda1=0.8, lambda2=0.2):
+def validate_model(model, criterion, X_val, y_val):
     model.eval()
     val_loss = 0.0
     y_val_pred, y_val_actual = [], []
-    alpha_values, beta_values, omega_values = [], [], []
 
     with torch.no_grad():
         for i in range(len(X_val)):
-            prediction, conditional_variance = model(X_val[i:i + 1])
-
-            # Weighted loss: Prediction loss + Volatility regularization
-            loss = lambda1 * criterion(prediction, y_val[i:i + 1]) + lambda2 * conditional_variance.mean()
+            prediction = model(X_val[i:i + 1])
+            loss = criterion(prediction, y_val[i:i + 1])
             val_loss += loss.item()
 
             y_val_pred.append(prediction.cpu().numpy().squeeze())
             y_val_actual.append(y_val[i].cpu().numpy().squeeze())
 
-            # Collect GARCH parameters
-            alpha_values.append(model.alpha.item())
-            beta_values.append(model.beta.item())
-            omega_values.append(model.omega.item())
-
     val_loss /= len(X_val)
-    # Take the mean of the parameters over the epoch
-    val_alpha = np.mean(alpha_values)
-    val_beta = np.mean(beta_values)
-    val_omega = np.mean(omega_values)
-
-    return val_loss, np.array(y_val_pred), np.array(y_val_actual), val_alpha, val_beta, val_omega
+    return val_loss, np.array(y_val_pred), np.array(y_val_actual)
 
 def calculate_metrics(y_actual, y_pred, scaler, prefix=""):
     """
@@ -745,92 +723,60 @@ def save_predictions_and_metrics(y_actual, y_pred, time_index, metrics, epoch, m
 # Model Definitions
 # ================================
 
-class GRUGARCH(nn.Module):
-    def __init__(self, input_dim, gru_hidden_size=128, gru_layers=2, dropout=0.2, output_dim=1):
-        super(GRUGARCH, self).__init__()
-        self.gru = nn.GRU(input_dim, gru_hidden_size, num_layers=gru_layers,
-                          batch_first=True, dropout=dropout)
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, dropout=0.1, max_len=5000):
+        super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
-        self.fc = nn.Linear(gru_hidden_size, output_dim)
-        # GARCH parameters initialized as raw parameters
-        self.alpha_raw = nn.Parameter(torch.tensor(0.05), requires_grad=True)
-        self.beta_raw = nn.Parameter(torch.tensor(0.9), requires_grad=True)
-        self.omega_raw = nn.Parameter(torch.tensor(0.1), requires_grad=True)
+        
+        position = torch.arange(0, max_len).unsqueeze(1).float()
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
+        )
+        pe = torch.zeros(max_len, d_model)
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)  # Shape: [1, max_len, d_model]
+        self.register_buffer('pe', pe)
 
     def forward(self, x):
-        # GRU forward pass
-        gru_out, _ = self.gru(x)
-        last_hidden_state = gru_out[:, -1, :]
-        last_hidden_state = self.dropout(last_hidden_state)
-        prediction = self.fc(last_hidden_state)
-        
-        # Compute residuals
-        residual = x[:, -1, 0] - prediction.squeeze()
-        
-        # Apply Softplus to ensure positivity
-        alpha = torch.nn.functional.softplus(self.alpha_raw)
-        beta = torch.nn.functional.softplus(self.beta_raw)
-        omega = torch.nn.functional.softplus(self.omega_raw)
-        
-        # Enforce alpha + beta < 1
-        alpha_beta_sum = alpha + beta
-        scaling_factor = torch.clamp(alpha_beta_sum / (1 - 1e-6), min=1.0)
-        alpha = alpha / scaling_factor
-        beta = beta / scaling_factor
-        
-        # Store computed parameters for later access
-        self.alpha = alpha
-        self.beta = beta
-        self.omega = omega
-        
-        # Initialize conditional variance
-        conditional_variance = torch.zeros_like(residual)
-        for t in range(len(residual)):
-            if t == 0:
-                conditional_variance[t] = omega + alpha * residual[t] ** 2
-            else:
-                conditional_variance[t] = (
-                    omega + alpha * residual[t - 1] ** 2 + beta * conditional_variance[t - 1]
-                )
-        
-        return prediction, conditional_variance
+        # x shape: [batch_size, seq_len, d_model]
+        x = x + self.pe[:, :x.size(1), :]
+        return self.dropout(x)
 
-class LSTMGARCH(nn.Module):
-    def __init__(self, input_dim, lstm_hidden_size=128, lstm_layers=2, dropout=0.2, output_dim=1):
-        super(LSTMGARCH, self).__init__()
-        self.lstm = nn.LSTM(input_dim, lstm_hidden_size, num_layers=lstm_layers,
-                            batch_first=True, dropout=dropout)
-        self.dropout = nn.Dropout(p=dropout)
+class LSTMTransformer(nn.Module):
+    def __init__(
+        self, input_dim, lstm_hidden_size=128, lstm_layers=1, 
+        nhead=4, num_transformer_layers=2, dim_feedforward=256,
+        dropout=0.1, output_dim=1
+    ):
+        super(LSTMTransformer, self).__init__()
+        self.lstm = nn.LSTM(
+            input_dim, lstm_hidden_size, num_layers=lstm_layers, 
+            batch_first=True, dropout=dropout, bidirectional=False
+        )
+        self.positional_encoding = PositionalEncoding(lstm_hidden_size, dropout)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=lstm_hidden_size, nhead=nhead, 
+            dim_feedforward=dim_feedforward, dropout=dropout
+        )
+        self.transformer_encoder = nn.TransformerEncoder(
+            encoder_layer, num_layers=num_transformer_layers
+        )
         self.fc = nn.Linear(lstm_hidden_size, output_dim)
-        # GARCH parameters
-        self.alpha = nn.Parameter(torch.tensor(0.05), requires_grad=True)
-        self.beta = nn.Parameter(torch.tensor(0.9), requires_grad=True)
-        self.omega = nn.Parameter(torch.tensor(0.1), requires_grad=True)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        # LSTM forward pass
-        lstm_out, _ = self.lstm(x)
-        last_hidden_state = lstm_out[:, -1, :]
-        # Apply dropout
-        last_hidden_state = self.dropout(last_hidden_state)
-        prediction = self.fc(last_hidden_state)
-
-        # Compute residuals
-        residual = x[:, -1, 0] - prediction.squeeze()
-
-        # Initialize conditional variance
-        conditional_variance = torch.zeros_like(residual)
-
-        # Compute GARCH variance recursively
-        for t in range(len(residual)):
-            if t == 0:
-                conditional_variance[t] = self.omega + self.alpha * residual[t] ** 2
-            else:
-                conditional_variance[t] = (
-                    self.omega + self.alpha * residual[t - 1] ** 2 + self.beta * conditional_variance[t - 1]
-                )
-
-        return prediction, conditional_variance
+        # x shape: [batch_size, seq_len, input_dim]
+        lstm_out, _ = self.lstm(x)  # [batch_size, seq_len, lstm_hidden_size]
+        lstm_out = self.dropout(lstm_out)
+        lstm_out = self.positional_encoding(lstm_out)
+        lstm_out = lstm_out.permute(1, 0, 2)  # [seq_len, batch_size, lstm_hidden_size]
+        transformer_out = self.transformer_encoder(lstm_out)
+        transformer_out = transformer_out.permute(1, 0, 2)  # [batch_size, seq_len, lstm_hidden_size]
+        # Use the last time step's output
+        output = transformer_out[:, -1, :]
+        output = self.fc(output)
+        return output
 
 # ================================
 # Main Workflow
@@ -915,9 +861,12 @@ fold = 1
 
 # Initialize hyperparameter grid
 hyperparams_grid = {
-    'gru_hidden_size': [64],
-    'gru_layers': [2],  # Changed from 1 to 2
-    'dropout': [0.5],
+    'lstm_hidden_size': [64, 128],
+    'lstm_layers': [1, 2],
+    'nhead': [4, 8],
+    'num_transformer_layers': [2, 4],
+    'dim_feedforward': [128, 256],
+    'dropout': [0.1, 0.2],
     'learning_rate': [0.001],
     'weight_decay': [0.01]
 }
@@ -932,10 +881,13 @@ for params in product(*hyperparams_grid.values()):
 
     # Initialize model with current hyperparameters
     input_dim = X.shape[2]
-    model = GRUGARCH(
+    model = LSTMTransformer(
         input_dim=input_dim,
-        gru_hidden_size=params_dict['gru_hidden_size'],
-        gru_layers=params_dict['gru_layers'],
+        lstm_hidden_size=params_dict['lstm_hidden_size'],
+        lstm_layers=params_dict['lstm_layers'],
+        nhead=params_dict['nhead'],
+        num_transformer_layers=params_dict['num_transformer_layers'],
+        dim_feedforward=params_dict['dim_feedforward'],
         dropout=params_dict['dropout']
     ).to(device)
 
@@ -978,32 +930,23 @@ for params in product(*hyperparams_grid.values()):
         for epoch in range(EPOCHS):
             print(f"Epoch {epoch + 1}/{EPOCHS}")
 
-            # Train the model with updated lambdas
-            train_loss, y_train_pred, y_train_actual, train_alpha, train_beta, train_omega = train_model(
-                model, optimizer, criterion, X_train_tensor, y_train_tensor, lambda1=LAMBDA1, lambda2=LAMBDA2
+            train_loss, y_train_pred, y_train_actual = train_model(
+                model, optimizer, criterion, X_train_tensor, y_train_tensor
             )
 
-            # Validate the model and get GARCH parameters
-            val_loss, y_val_pred, y_val_actual, val_alpha, val_beta, val_omega = validate_model(
-                model, criterion, X_val_tensor, y_val_tensor, lambda1=LAMBDA1, lambda2=LAMBDA2
+            val_loss, y_val_pred, y_val_actual = validate_model(
+                model, criterion, X_val_tensor, y_val_tensor
             )
 
-            # Calculate metrics for training and validation
+            # Calculate metrics
             train_metrics = calculate_metrics(
                 y_train_actual, y_train_pred, scaler=target_scaler, prefix="Train "
             )
             val_metrics = calculate_metrics(
                 y_val_actual, y_val_pred, scaler=target_scaler, prefix="Validation "
             )
-            _, train_abs_pip_diff = calculate_pip_difference(
-                y_train_pred, y_train_actual, scaler=target_scaler
-            )
-            pip_diff, val_abs_pip_diff = calculate_pip_difference(
-                y_val_pred, y_val_actual, scaler=target_scaler
-            )
-            print("Sample pip differences:", pip_diff[:5])
 
-            # Use val_abs_pip_diff in log_epoch_data and print statements
+            # Log metrics (set GARCH parameters to None)
             log_epoch_data(
                 file_path=LOG_FILE,
                 epoch=epoch + 1,
@@ -1012,7 +955,7 @@ for params in product(*hyperparams_grid.values()):
                 val_loss=val_loss,
                 train_rmse=train_metrics["Train RMSE"],
                 val_rmse=val_metrics["Validation RMSE"],
-                val_pip_diff=val_abs_pip_diff,
+                val_pip_diff=val_metrics["Validation Mean Absolute Pip Difference"],
                 train_sharpe=train_metrics["Train Sharpe Ratio"],
                 val_sharpe=val_metrics["Validation Sharpe Ratio"],
                 train_profit_factor=train_metrics["Train Profit Factor"],
@@ -1027,11 +970,12 @@ for params in product(*hyperparams_grid.values()):
                 val_r2=val_metrics["Validation R²"],
                 train_mae=train_metrics["Train MAE"],
                 val_mae=val_metrics["Validation MAE"],
-                train_alpha=train_alpha,
-                train_beta=train_beta,
-                train_omega=train_omega
+                train_alpha=None,
+                train_beta=None,
+                train_omega=None
             )
 
+            # Scheduler step
             scheduler.step(val_loss)
 
             # Early stopping logic
@@ -1044,10 +988,11 @@ for params in product(*hyperparams_grid.values()):
                 if early_stopping_counter >= EARLY_STOPPING_PATIENCE:
                     print(f"Early stopping triggered at epoch {epoch + 1}")
                     model.load_state_dict(best_model_state)
-                    break  # Exit the epoch loop
+                    break
 
+            val_abs_pip_diff = calculate_pip_difference(y_val_pred, y_val_actual, target_scaler)[1]
             # Print metrics
-            print(f"\nGRU-GARCH - Epoch {epoch + 1} Summary:")
+            print(f"\nLSTM-TRANSFORMER - Epoch {epoch + 1} Summary:")
             print(f"  Train Loss: {train_loss:.5f}, Validation Loss: {val_loss:.5f}")
             print(f"  Train RMSE: {train_metrics['Train RMSE']:.5f}, Validation RMSE: {val_metrics['Validation RMSE']:.5f}")
             print(f"  Train MAE: {train_metrics['Train MAE']:.5f}, Validation MAE: {val_metrics['Validation MAE']:.5f}")
@@ -1073,14 +1018,14 @@ for params in product(*hyperparams_grid.values()):
                 time_index=time_indices_val,
                 metrics=val_metrics,
                 epoch=epoch + 1,
-                model_name="GRU-GARCH",
+                model_name="LSTM-TRANSFORMER",
                 scaler=target_scaler
             )
 
             # Store metrics for reporting
             epoch_metrics.append({
                 "Epoch": epoch + 1,
-                "Model": "GRU-GARCH",
+                "Model": "LSTM-TRANSFORMER",
                 "Train Loss": train_loss,
                 "Validation Loss": val_loss,
                 **train_metrics,
@@ -1088,7 +1033,7 @@ for params in product(*hyperparams_grid.values()):
                 "Validation Pip Difference": val_abs_pip_diff
             })
 
-            save_plot(get_plot_folder(), y_val_actual, y_val_pred, epoch + 1, "GRU-GARCH", target_scaler)
+            save_plot(get_plot_folder(), y_val_actual, y_val_pred, epoch + 1, "LSTM-TRANSFORMER", target_scaler)
 
         # Residual Analysis
         residuals = y_val_actual - y_val_pred
