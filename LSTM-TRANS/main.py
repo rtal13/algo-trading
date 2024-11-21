@@ -4,16 +4,16 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, RobustScaler
+from sklearn.preprocessing import RobustScaler
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
+import seaborn as sns
 from tqdm import tqdm
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import ta
 import os
 from datetime import datetime, timedelta
-import seaborn as sns
 from scipy.stats import pearsonr
 from matplotlib.patches import Rectangle
 from scipy import stats
@@ -22,27 +22,24 @@ import random
 import copy
 import math
 
-
-
 # ================================
 # Globals
 # ================================
 
 TICKER = "EURUSD=X"
 PLOT_FOLDER = None
-DOWNLOAD_DAYS = 3  # Increased to get more data only can download 5 day max for 11min interval
+DOWNLOAD_DAYS = 1  # Increased to get more data
 SEQ_LEN = 26
 FUTURE_STEPS = 1
-EPOCHS = 50  # Reduced for quicker experimentation
+EPOCHS = 50  # Adjusted for experimentation
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 SPLIT_PERCENTAGE = 0.2  # Increased validation set size
-MODE = 1  # Set to 1 to download data from Yahoo Finance
-LOG_FILE = "epoch_summary.csv"
+MODE = 0  # Set to 1 to download data from Yahoo Finance
+MAX_FILE_ROWS = 3000  # Limit the number of rows to load from the CSV file
+LOG_FILE = "epoch_summary"
 LAMBDA1 = 0.7  # Prediction loss weight
 LAMBDA2 = 0.3  # Volatility regularization weight
 EARLY_STOPPING_PATIENCE = 5
-LEARNING_RATE = 0.001  # Starting learning rate
-WEIGHT_DECAY = 0.01  # Starting weight decay
 
 # Set random seed for reproducibility
 SEED = 42
@@ -52,11 +49,12 @@ torch.manual_seed(SEED)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(SEED)
     torch.cuda.manual_seed_all(SEED)
+
 # ================================
 # Helper Functions
 # ================================
 
-def augment_data(X, y, noise_level=0.01):
+def augment_data(X, y, noise_level=0.0001):
     noise = np.random.normal(0, noise_level, X.shape)
     X_augmented = X + noise
     return X_augmented, y
@@ -64,30 +62,23 @@ def augment_data(X, y, noise_level=0.01):
 def debug_normalization(scaler, data, column_name):
     """
     Debug and verify normalization and inverse transformation.
-
-    Parameters:
-    - scaler (MinMaxScaler): The scaler used for normalization.
-    - data (pd.DataFrame): The data containing the column to be checked.
-    - column_name (str): Column name to be normalized and inverse transformed.
-
-    Returns:
-    None
     """
     try:
-        # Ensure input data is a DataFrame
-        values = data[[column_name]]
+        # Select the specific column
+        column_data = data[[column_name]]
+        
         print("Before normalization:")
-        print(values.head(FUTURE_STEPS + 5).values)
+        print(column_data.head(FUTURE_STEPS + 20))
 
         # Perform normalization
-        normalized = scaler.transform(values)
+        normalized = scaler.transform(column_data)
         print("\nAfter normalization:")
-        print(normalized[:FUTURE_STEPS + 5])
+        print(normalized[:FUTURE_STEPS + 20])
 
         # Perform inverse transformation
         denormalized = scaler.inverse_transform(normalized)
         print("\nAfter inverse transform:")
-        print(denormalized[:FUTURE_STEPS + 5])
+        print(denormalized[:FUTURE_STEPS + 20])
 
     except Exception as e:
         print(f"[ERROR] Debugging normalization failed. Error: {e}")
@@ -99,16 +90,9 @@ def log_epoch_data(file_path, epoch, fold, train_loss, val_loss, train_rmse, val
                    train_mae, val_mae, train_alpha, train_beta, train_omega):
     """
     Log epoch data to a CSV file with timestamped filenames and fold headers.
-
-    Parameters:
-    - file_path (str): Base path for the log file (without timestamp).
-    - epoch (int): Epoch number.
-    - fold (int): Fold number for cross-validation.
-    - train_loss, val_loss, etc.: Metrics to log.
     """
     # Generate timestamped filename
     folder = get_plot_folder()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_path = f"{folder}/{file_path}.csv"
 
     # Define data for the current epoch
@@ -173,33 +157,20 @@ def get_plot_folder():
 def load_forex_data(file_path):
     """
     Load EURUSD M1 data from a CSV file and prepare it for preprocessing.
-
-    Parameters:
-        file_path (str): Path to the EURUSD_M1.csv file.
-
-    Returns:
-        pd.DataFrame: DataFrame ready for preprocessing.
     """
     # Load the data
     data = pd.read_csv(file_path)
+    limited_data = data.iloc[:MAX_FILE_ROWS].copy()
 
     # Convert 'Date' to datetime and set as the index
-    data['Date'] = pd.to_datetime(data['Date'])
-    data.set_index('Date', inplace=True)
+    limited_data['Date'] = pd.to_datetime(limited_data['Date'])
+    limited_data.set_index('Date', inplace=True)
 
-    return data
+    return limited_data
 
 def suppress_discontinuities(data, threshold=1e6, smooth_window=5):
     """
     Suppress straight lines caused by discontinuities in technical indicators.
-
-    Parameters:
-    - data (pd.DataFrame): DataFrame containing technical indicator columns.
-    - threshold (float): Threshold to identify outliers or invalid values.
-    - smooth_window (int): Window size for smoothing.
-
-    Returns:
-    pd.DataFrame: Cleaned DataFrame with discontinuities suppressed.
     """
     cleaned_data = data.copy()
 
@@ -219,24 +190,22 @@ def suppress_discontinuities(data, threshold=1e6, smooth_window=5):
 
 def preprocess_data(data):
     """
-    Add technical indicators, time-based features, and handle missing values.
-
-    Parameters:
-    data (pd.DataFrame): A DataFrame containing OHLCV data with a DateTime index.
-
-    Returns:
-    pd.DataFrame: DataFrame with additional features for model training.
+    Add technical indicators, time-based features, lagged features, and handle missing values.
     """
     print("Data before preprocessing:")
     print(data.head(30))
 
-    # Add momentum indicators
+    # ================================
+    # Add Momentum Indicators
+    # ================================
     data['RSI'] = ta.momentum.rsi(data['Close'], window=14)
     data['Stochastic_K'] = ta.momentum.stoch(data['High'], data['Low'], data['Close'], window=14, smooth_window=3)
     data['Stochastic_D'] = ta.momentum.stoch_signal(data['High'], data['Low'], data['Close'], window=14, smooth_window=3)
     data['Williams_R'] = ta.momentum.williams_r(data['High'], data['Low'], data['Close'], lbp=14)
 
-    # Add trend indicators
+    # ================================
+    # Add Trend Indicators
+    # ================================
     data['MACD'] = ta.trend.macd_diff(data['Close'])
     data['EMA_12'] = ta.trend.ema_indicator(data['Close'], window=12)
     data['EMA_26'] = ta.trend.ema_indicator(data['Close'], window=26)
@@ -244,141 +213,91 @@ def preprocess_data(data):
     data['Aroon_Up'] = ta.trend.aroon_up(data['High'], data['Low'], window=25)
     data['Aroon_Down'] = ta.trend.aroon_down(data['High'], data['Low'], window=25)
 
-    # Add volatility indicators
+    # ================================
+    # Add Volatility Indicators
+    # ================================
     bollinger_band = ta.volatility.BollingerBands(data['Close'], window=20, window_dev=2)
     data['Bollinger_Band_Width'] = bollinger_band.bollinger_wband()
     data['Bollinger_Band_PctB'] = bollinger_band.bollinger_pband()
     data['ATR'] = ta.volatility.average_true_range(data['High'], data['Low'], data['Close'], window=14)
 
-    # Add volume indicators
+    # ================================
+    # Add Volume Indicators (if applicable)
+    # ================================
     if 'Volume' in data.columns and data['Volume'].nunique() > 1:
         data['On_Balance_Volume'] = ta.volume.on_balance_volume(data['Close'], data['Volume'])
-        data['Chaikin_Money_Flow'] = ta.volume.chaikin_money_flow(data['High'], data['Low'], data['Close'], data['Volume'], window=20)
+        data['Chaikin_Money_Flow'] = ta.volume.chaikin_money_flow(
+            data['High'], data['Low'], data['Close'], data['Volume'], window=20
+        )
         data['MFI'] = ta.volume.money_flow_index(data['High'], data['Low'], data['Close'], data['Volume'], window=14)
-    
-    # Add time-based features
+
+    # ================================
+    # Add Time-Based Features
+    # ================================
     data['Hour'] = data.index.hour
     data['DayOfWeek'] = data.index.dayofweek
     data['Month'] = data.index.month
 
-    data['Target'] = data['Close'].shift(-FUTURE_STEPS)
+    # ================================
+    # Add Target Column
+    # ================================
+    data['Target'] = data['Close'].shift(-FUTURE_STEPS)  # Shift 'Close' to create future prediction target
 
-    # Add lagged features
-    for lag in range(1, 4):
+    # ================================
+    # Handle Missing Values
+    # ================================
+    data = data.dropna().copy()  # Drop rows with any NaN values
+    data.ffill(inplace=True)  # Fill forward any remaining NaN values
+    max_lookback = 40  # Remove the first `max_lookback` rows to ensure data integrity
+    data = data.iloc[max_lookback:].copy()
+
+    # ================================
+    # Define Initial Features
+    # ================================
+    features = [
+        'Close', 'RSI', 'MACD', 'Bollinger_Band_PctB', 'ATR', 'Hour', 'DayOfWeek', 'Month',
+        'ADX', 'Aroon_Up', 'Aroon_Down', 'Bollinger_Band_Width'
+    ]
+
+    # ================================
+    # Add Lagged Features
+    # ================================
+    for lag in range(1, 10):  # Add lag features for 'Close' from 1 to 9
         data[f'Close_lag_{lag}'] = data['Close'].shift(lag)
+        features.append(f'Close_lag_{lag}')
 
-    # Drop rows with NaN values (due to indicators, lagging, or shifting)
-    data = data.dropna().copy()  # Drop and copy explicitly to avoid warnings
-    # Fill forward missing values caused by indicator calculations
-    data.ffill(inplace=True)
+    # Remove rows with NaN values caused by lagged features
+    data = data.dropna(subset=features).copy()
 
-    # Drop rows with missing values only after ensuring enough data
-    max_lookback = 40  # Maximum look-back period used by any indicator
-    data = data.iloc[max_lookback:]  # Remove only the first N rows
+    print("Data shape after dropping NaNs from features and target:", data.shape)
+
+    # Check for NaNs or Infs in the data
+    if data[features + ['Target']].isnull().values.any():
+        print("Data contains NaN values.")
+    if np.isinf(data[features + ['Target']].values).any():
+        print("Data contains Inf values.")
 
     print("Data after preprocessing:")
     print(data.head(30))
     print(data.isna().sum())
-    return data
 
-
-def plot_indicators(data, train_split_index, indicators):
-    """
-    Plot selected indicators and visualize the train/validation split.
-
-    Parameters:
-    data (pd.DataFrame): DataFrame with technical indicators and a DateTime index.
-    train_split_index (int): Index to split train and validation data.
-    indicators (list): List of indicator columns to plot.
-    """
-    # Split data into train and validation
-    train_data = data.iloc[:train_split_index]
-    validation_data = data.iloc[train_split_index:]
-
-    # Generate Buy/Sell Signals
-    buy_signals = data[(data['RSI'] < 30) & (data['Close'] < data['EMA_12'])].index
-    sell_signals = data[(data['RSI'] > 70) & (data['Close'] > data['EMA_12'])].index
-
-    # Convert signal indices to integer positions
-    buy_signals_idx = data.index.get_indexer(buy_signals)
-    sell_signals_idx = data.index.get_indexer(sell_signals)
-
-    # Plot Close price
-    plt.figure(figsize=(14, 10))
-
-    # Close Price Plot
-    plt.subplot(3, 1, 1)
-    plt.plot(train_data.index, train_data['Close'], label='Train Close Price')
-    plt.plot(validation_data.index, validation_data['Close'], label='Validation Close Price')
-    plt.scatter(data.index[buy_signals_idx], data['Close'].iloc[buy_signals_idx], color='green', label='Buy Signal', marker='^')
-    plt.scatter(data.index[sell_signals_idx], data['Close'].iloc[sell_signals_idx], color='red', label='Sell Signal', marker='v')
-    plt.axvline(x=data.index[train_split_index], color='orange', linestyle='--', label='Train/Validation Split')
-    plt.legend()
-    plt.title("Close Price with Buy/Sell Signals")
-
-    # Indicators Plot
-    plt.subplot(3, 1, 2)
-    for ind in indicators:
-        plt.plot(data.index, data[ind], label=ind)
-    plt.legend()
-    plt.title("Technical Indicators")
-
-    # Zoomed Plot
-    plt.subplot(3, 1, 3)
-    random_start = np.random.randint(0, len(data) - 100)
-    zoom_start, zoom_end = random_start, random_start + 100
-    
-    plt.plot(data.index[zoom_start:zoom_end], data['Close'].iloc[zoom_start:zoom_end], label='Close Price (Zoomed)')
-    zoom_buy_signals_idx = buy_signals_idx[(buy_signals_idx >= zoom_start) & (buy_signals_idx < zoom_end)]
-    zoom_sell_signals_idx = sell_signals_idx[(sell_signals_idx >= zoom_start) & (sell_signals_idx < zoom_end)]
-    plt.scatter(data.index[zoom_buy_signals_idx], data['Close'].iloc[zoom_buy_signals_idx], color='green', label='Buy Signal (Zoomed)', marker='^')
-    plt.scatter(data.index[zoom_sell_signals_idx], data['Close'].iloc[zoom_sell_signals_idx], color='red', label='Sell Signal (Zoomed)', marker='v')
-    plt.legend()
-    plt.title("Zoomed-In Close Price with Signals")
-
-    plt.tight_layout()
-    plt.show()
-
-def remove_outliers(data, features, z_thresh=3):
-    """
-    Remove outliers from the data based on z-score threshold.
-
-    Parameters:
-    - data (pd.DataFrame): Input data.
-    - features (list): List of feature columns to check for outliers.
-    - z_thresh (float): Z-score threshold to identify outliers.
-
-    Returns:
-    - pd.DataFrame: DataFrame with outliers removed.
-    """
-    z_scores = np.abs(stats.zscore(data[features]))
-    filtered_entries = (z_scores < z_thresh).all(axis=1)
-    return data[filtered_entries]
+    return data, features
 
 def scale_features(data, features, target):
     """
-    Scale the features and target using MinMaxScaler and debug normalization.
-
-    Parameters:
-    - data (pd.DataFrame): Input data with features and target columns.
-    - features (list): List of feature column names.
-    - target (list): List containing the target column name.
-
-    Returns:
-    - scaled_features_df (pd.DataFrame): DataFrame with scaled features and target.
-    - feature_scaler (MinMaxScaler): Scaler for features.
-    - target_scaler (MinMaxScaler): Scaler for the target column.
+    Scale the features and target using RobustScaler and debug normalization.
     """
     # Create scalers
     feature_scaler = RobustScaler()
     target_scaler = RobustScaler()
 
-    # Copy data to avoid modifying the original DataFrame
-    data = data.copy()
+    # Ensure only specified features and target columns are used
+    features_to_scale = data[features].copy()
+    target_to_scale = data[target].copy()
 
-    # Fit scalers and transform features and target
-    scaled_features = feature_scaler.fit_transform(data[features])
-    scaled_target = target_scaler.fit_transform(data[target])
+    # Fit and transform features and target
+    scaled_features = feature_scaler.fit_transform(features_to_scale)
+    scaled_target = target_scaler.fit_transform(target_to_scale)
 
     # Create DataFrame for scaled data
     scaled_features_df = pd.DataFrame(scaled_features, columns=features, index=data.index)
@@ -390,6 +309,16 @@ def scale_features(data, features, target):
         data=data,
         column_name="Target"  # Use 'Target' for both original and normalized data
     )
+
+    # Log scaled features for debugging
+    print("Scaled features:")
+    print(scaled_features_df.head(5))
+
+    # Check for NaNs or Infs in scaled data
+    if np.isnan(scaled_features_df.values).any():
+        print("Scaled data contains NaN values.")
+    if np.isinf(scaled_features_df.values).any():
+        print("Scaled data contains Inf values.")
 
     return scaled_features_df, feature_scaler, target_scaler
 
@@ -469,60 +398,67 @@ def save_plot(folder, y_actual, y_predicted, epoch, model_name, scaler):
 
     print(f"Plots saved: {plot_filename_actual}, {plot_filename_pip}")
 
-def train_model(model, optimizer, criterion, X_train, y_train):
+def train_model(model, optimizer, criterion, X_train, y_train, batch_size=64):
     model.train()
     train_loss = 0.0
     y_train_pred, y_train_actual = [], []
 
-    for i in tqdm(range(len(X_train)), desc="Training"):
+    # Create DataLoader for batching
+    train_dataset = torch.utils.data.TensorDataset(X_train, y_train)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    for X_batch, y_batch in tqdm(train_loader, desc="Training"):
+        X_batch, y_batch = X_batch.to(device), y_batch.to(device)
         optimizer.zero_grad()
-        prediction = model(X_train[i:i + 1])
-
-        loss = criterion(prediction, y_train[i:i + 1])
+        prediction = model(X_batch)
+        if torch.isnan(prediction).any() or torch.isinf(prediction).any():
+            print("Model outputs contain NaN or Inf values.")
+            continue  # Skip this batch
+        loss = criterion(prediction, y_batch)
+        if torch.isnan(loss) or torch.isinf(loss):
+            print("Loss is NaN or Inf.")
+            continue  # Skip this batch
         loss.backward()
-
-        # Gradient clipping
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Gradient clipping
         optimizer.step()
-        train_loss += loss.item()
+        train_loss += loss.item() * X_batch.size(0)  # Accumulate total loss
 
-        y_train_pred.append(prediction.detach().cpu().numpy().squeeze())
-        y_train_actual.append(y_train[i].detach().cpu().numpy().squeeze())
+        y_train_pred.extend(prediction.detach().cpu().numpy().squeeze())
+        y_train_actual.extend(y_batch.detach().cpu().numpy().squeeze())
 
-    train_loss /= len(X_train)
+    train_loss /= len(train_loader.dataset)
     return train_loss, np.array(y_train_pred), np.array(y_train_actual)
 
-def validate_model(model, criterion, X_val, y_val):
+def validate_model(model, criterion, X_val, y_val, batch_size=64):
     model.eval()
     val_loss = 0.0
     y_val_pred, y_val_actual = [], []
 
+    val_dataset = torch.utils.data.TensorDataset(X_val, y_val)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
     with torch.no_grad():
-        for i in range(len(X_val)):
-            prediction = model(X_val[i:i + 1])
-            loss = criterion(prediction, y_val[i:i + 1])
-            val_loss += loss.item()
+        for X_batch, y_batch in val_loader:
+            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+            prediction = model(X_batch)
+            if torch.isnan(prediction).any() or torch.isinf(prediction).any():
+                print("Model outputs contain NaN or Inf values.")
+                continue  # Skip this batch
+            loss = criterion(prediction, y_batch)
+            if torch.isnan(loss) or torch.isinf(loss):
+                print("Validation loss is NaN or Inf.")
+                continue  # Skip this batch
+            val_loss += loss.item() * X_batch.size(0)
 
-            y_val_pred.append(prediction.cpu().numpy().squeeze())
-            y_val_actual.append(y_val[i].cpu().numpy().squeeze())
+            y_val_pred.extend(prediction.cpu().numpy().squeeze())
+            y_val_actual.extend(y_batch.cpu().numpy().squeeze())
 
-    val_loss /= len(X_val)
+    val_loss /= len(val_loader.dataset)
     return val_loss, np.array(y_val_pred), np.array(y_val_actual)
 
 def calculate_metrics(y_actual, y_pred, scaler, prefix=""):
     """
     Calculate a comprehensive set of metrics for model evaluation.
-    
-    Parameters:
-    - y_actual (np.array): Actual values (normalized or raw).
-    - y_pred (np.array): Predicted values (normalized or raw).
-    - prefix (str): Prefix for the metric names (e.g., "Train " or "Validation ").
-    - returns (np.array, optional): Trading returns for Sharpe ratio and profit factor.
-    - scaler (MinMaxScaler, optional): Scaler to denormalize the data.
-
-    Returns:
-    dict: A dictionary of calculated metrics with their values.
     """
     # Denormalize if scaler is provided
     if scaler:
@@ -549,7 +485,7 @@ def calculate_metrics(y_actual, y_pred, scaler, prefix=""):
     # Sharpe Ratio Proxy
     if returns is not None and len(returns) > 1:
         avg_return = np.mean(returns)
-        return_std = np.std(returns)
+        return_std = np.std(returns) + 1e-8  # Avoid division by zero
         sharpe_ratio = avg_return / return_std if return_std != 0 else 0
     else:
         sharpe_ratio = None
@@ -558,7 +494,7 @@ def calculate_metrics(y_actual, y_pred, scaler, prefix=""):
     if returns is not None and len(returns) > 1:
         cumulative_returns = np.cumsum(returns)
         peak = np.maximum.accumulate(cumulative_returns)
-        drawdown = (peak - cumulative_returns) / peak
+        drawdown = (peak - cumulative_returns) / (peak + 1e-8)  # Avoid division by zero
         max_drawdown = np.max(drawdown)
     else:
         max_drawdown = None
@@ -567,9 +503,9 @@ def calculate_metrics(y_actual, y_pred, scaler, prefix=""):
     if returns is not None and len(returns) > 1:
         profits = np.sum(returns[returns > 0])
         losses = -np.sum(returns[returns < 0])
-        profit_factor = profits / losses if losses != 0 else None
+        profit_factor = profits / losses if losses != 0 else 0.0  # Set default to 0.0
     else:
-        profit_factor = None
+        profit_factor = 0.0  # Set default to 0.0
 
     # Combine all metrics into a dictionary
     metrics = {
@@ -655,28 +591,18 @@ def analyze_results(metrics_df):
 def save_predictions_and_metrics(y_actual, y_pred, time_index, metrics, epoch, model_name, scaler):
     """
     Save predictions, actuals, time, and metrics for each epoch to an Excel file.
-
-    Args:
-        y_actual (array): Actual values (normalized).
-        y_pred (array): Predicted values (normalized).
-        time_index (DatetimeIndex): Time associated with the predictions.
-        metrics (dict): Metrics for the epoch.
-        epoch (int): Current epoch number.
-        model_name (str): Name of the model.
-        scaler (MinMaxScaler): Scaler used for inverse transformation.
     """
     # Inverse transform y_actual and y_pred
     y_actual = scaler.inverse_transform(y_actual.reshape(-1, 1)).flatten()
     y_pred = scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
-    # Debugging the time_index
-    print("Time Index Type:", type(time_index))
+
+    # Convert time_index to pandas Series if necessary
+    if not isinstance(time_index, pd.Series):
+        time_index = pd.Series(time_index)
     time_index = pd.to_datetime(time_index)
 
-    if isinstance(time_index, pd.DatetimeIndex):
-        print("Time Index Timezone Info:", time_index.tz)
-    # Ensure time_index is timezone-unaware
-    if hasattr(time_index, "tz_localize"):
-        time_index = time_index.tz_localize(None)  # Remove timezone information
+    # Remove timezone information
+    time_index = time_index.dt.tz_localize(None)
 
     # Create a DataFrame to store predictions and actual values
     predictions_df = pd.DataFrame({
@@ -750,14 +676,19 @@ class LSTMTransformer(nn.Module):
         dropout=0.1, output_dim=1
     ):
         super(LSTMTransformer, self).__init__()
+        dropout = dropout if lstm_layers > 1 else 0.0
+
         self.lstm = nn.LSTM(
             input_dim, lstm_hidden_size, num_layers=lstm_layers, 
             batch_first=True, dropout=dropout, bidirectional=False
         )
+        
         self.positional_encoding = PositionalEncoding(lstm_hidden_size, dropout)
+        
+        # Enable batch_first=True
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=lstm_hidden_size, nhead=nhead, 
-            dim_feedforward=dim_feedforward, dropout=dropout
+            dim_feedforward=dim_feedforward, dropout=dropout, batch_first=True
         )
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer, num_layers=num_transformer_layers
@@ -769,14 +700,29 @@ class LSTMTransformer(nn.Module):
         # x shape: [batch_size, seq_len, input_dim]
         lstm_out, _ = self.lstm(x)  # [batch_size, seq_len, lstm_hidden_size]
         lstm_out = self.dropout(lstm_out)
-        lstm_out = self.positional_encoding(lstm_out)
-        lstm_out = lstm_out.permute(1, 0, 2)  # [seq_len, batch_size, lstm_hidden_size]
-        transformer_out = self.transformer_encoder(lstm_out)
-        transformer_out = transformer_out.permute(1, 0, 2)  # [batch_size, seq_len, lstm_hidden_size]
+        lstm_out = self.positional_encoding(lstm_out)  # No need to permute now
+        transformer_out = self.transformer_encoder(lstm_out)  # [batch_size, seq_len, lstm_hidden_size]
         # Use the last time step's output
         output = transformer_out[:, -1, :]
         output = self.fc(output)
         return output
+
+class CustomLoss(nn.Module):
+    def __init__(self, alpha=0.5):
+        super(CustomLoss, self).__init__()
+        self.alpha = alpha
+        self.mse = nn.MSELoss()
+        self.mae = nn.L1Loss()
+
+    def forward(self, predictions, targets):
+        mse_loss = self.mse(predictions, targets)
+        mae_loss = self.mae(predictions, targets)
+        # Optionally add a volatility penalty
+        if predictions.size(0) > 1:
+            volatility_penalty = torch.mean(torch.abs(predictions[1:] - predictions[:-1]))
+        else:
+            volatility_penalty = 0.0  # No penalty if only one sample
+        return self.alpha * mse_loss + (1 - self.alpha) * mae_loss + 0.01 * volatility_penalty
 
 # ================================
 # Main Workflow
@@ -789,71 +735,70 @@ if MODE == 0:
 else:
     # Adjust the date range to get more data
     end_date = datetime.today()
-    start_date = end_date - timedelta(days=DOWNLOAD_DAYS)  # Adjust as needed
+    start_date = end_date - timedelta(days=DOWNLOAD_DAYS)  # Get data from the past few days
+
+    # Ensure dates are weekdays
+    while end_date.weekday() > 4:  # Saturday or Sunday
+        end_date -= timedelta(days=1)
+
+    while start_date.weekday() > 4:
+        start_date -= timedelta(days=1)
+
     data = yf.download(
         TICKER,
         start=start_date.strftime('%Y-%m-%d'),
         end=end_date.strftime('%Y-%m-%d'),
         interval="1m",
-        progress=False  # Suppress download progress bar
+        progress=False
     )
-    if data.empty:
-        print("No data downloaded. Please check the date range and ticker symbol.")
+
+    if data.empty or data['Volume'].sum() == 0:
+        print("Downloaded data is empty or has zero volume. Trying a higher interval.")
+        # Try a higher interval
+        data = yf.download(
+            TICKER,
+            start=start_date.strftime('%Y-%m-%d'),
+            end=end_date.strftime('%Y-%m-%d'),
+            interval="5m",
+            progress=False
+        )
+
+    if data.empty or data['Volume'].sum() == 0:
+        print("No suitable data found. Consider changing the data source or date range.")
         exit()
     else:
-        print("Data downloaded successfully", len(data))
+        print("Data downloaded successfully:", data.shape)
+        print(data.head())
 
 # Proceed only if data is available
 if not data.empty:
     # Preprocess data
-    data = preprocess_data(data)
+    data, features = preprocess_data(data)
     print("Data shape after preprocessing:", data.shape)
 
-    # Create 'Target' column by shifting 'Close' values
-    data.loc[:, 'Target'] = data['Close'].shift(-FUTURE_STEPS)
-    data.dropna(subset=['Target'], inplace=True)
-    print("Data shape after creating Target and dropping NaNs:", data.shape)
-
     # Define features and target
-    features = ['Close', 'RSI', 'MACD', 'Bollinger_Band_PctB', 'ATR', 'Volume', 'Hour', 'DayOfWeek', 'Month',
-                'ADX', 'Aroon_Up', 'Aroon_Down', 'Bollinger_Band_Width']
     target = ['Target']
 
-    # Remove highly correlated features
-    corr_matrix = data[features].corr().abs()
-    upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-    high_corr_features = [column for column in upper_tri.columns if any(upper_tri[column] > 0.9)]
-    print(f"Removing highly correlated features: {high_corr_features}")
-    features = [f for f in features if f not in high_corr_features]
-    print("Features after removing correlated ones:", features)
-
-    # Add lagged features
-    for lag in range(1, 4):
-        data.loc[:, f'Close_lag_{lag}'] = data['Close'].shift(lag)
-        features.append(f'Close_lag_{lag}')
-
-    print("Features after adding lagged features:", features)
-
-    # Drop NaNs introduced by shifting
+    # Drop rows with NaNs in features or target
     data.dropna(subset=features + target, inplace=True)
     print("Data shape after dropping NaNs from features and target:", data.shape)
 
-    # Optionally, remove outliers
-    # data = remove_outliers(data, features + target, z_thresh=3)
-    # print("Data shape after removing outliers:", data.shape)
     if data.empty:
         print("No data left after preprocessing. Please adjust your preprocessing steps.")
         exit()
 
-# Scale features and create sequences
-scaled_data, feature_scaler, target_scaler = scale_features(data, features, target)
-X, y, indices = create_sequences(scaled_data, SEQ_LEN, FUTURE_STEPS)
+    # Scale features and target
+    scaled_data, feature_scaler, target_scaler = scale_features(data, features, target)
 
-# Calculate total number of sequences
-if len(X) == 0:
-    print("No sequences created. Check SEQ_LEN and ensure it's appropriate for the dataset size.")
-    exit()
-total_sequences = len(X)
+    # Create sequences
+    X, y, indices = create_sequences(scaled_data, SEQ_LEN, FUTURE_STEPS)
+
+    # Check for sequences
+    if len(X) == 0:
+        print("No sequences created. Check SEQ_LEN and ensure it's appropriate for the dataset size.")
+        exit()
+
+    print(f"Number of sequences created: {len(X)}")
 
 # Split data into training and testing sets
 kf = KFold(n_splits=5)
@@ -861,68 +806,76 @@ fold = 1
 
 # Initialize hyperparameter grid
 hyperparams_grid = {
-    'lstm_hidden_size': [64, 128],
-    'lstm_layers': [1, 2],
+    'lstm_hidden_size': [128, 256],
+    'lstm_layers': [2, 3],
     'nhead': [4, 8],
     'num_transformer_layers': [2, 4],
-    'dim_feedforward': [128, 256],
+    'dim_feedforward': [256, 512],
     'dropout': [0.1, 0.2],
-    'learning_rate': [0.001],
-    'weight_decay': [0.01]
+    'learning_rate': [0.0005, 0.0001],  # Reduced learning rates
+    'weight_decay': [0.001, 0.0001]  # Reduced weight decay
 }
 
 best_overall_val_loss = float('inf')
 best_hyperparams = None
 best_model_state = None
 
+input_dim = X.shape[2]
+
 for params in product(*hyperparams_grid.values()):
     params_dict = dict(zip(hyperparams_grid.keys(), params))
     print(f"\nTraining with hyperparameters: {params_dict}")
-
-    # Initialize model with current hyperparameters
-    input_dim = X.shape[2]
-    model = LSTMTransformer(
-        input_dim=input_dim,
-        lstm_hidden_size=params_dict['lstm_hidden_size'],
-        lstm_layers=params_dict['lstm_layers'],
-        nhead=params_dict['nhead'],
-        num_transformer_layers=params_dict['num_transformer_layers'],
-        dim_feedforward=params_dict['dim_feedforward'],
-        dropout=params_dict['dropout']
-    ).to(device)
-
-    optimizer = optim.AdamW(
-        model.parameters(),
-        lr=params_dict['learning_rate'],
-        weight_decay=params_dict['weight_decay']
-    )
-
-    scheduler = ReduceLROnPlateau(optimizer, patience=3, factor=0.5)
-    criterion = nn.SmoothL1Loss()
 
     # Cross-validation
     fold = 1
     for train_index, val_index in kf.split(X):
         print(f"\nFold {fold}")
 
+        # Re-initialize model for each fold
+        model = LSTMTransformer(
+            input_dim=input_dim,
+            lstm_hidden_size=params_dict['lstm_hidden_size'],
+            lstm_layers=params_dict['lstm_layers'],
+            nhead=params_dict['nhead'],
+            num_transformer_layers=params_dict['num_transformer_layers'],
+            dim_feedforward=params_dict['dim_feedforward'],
+            dropout=params_dict['dropout']
+        ).to(device)
+
+        optimizer = optim.AdamW(
+            model.parameters(),
+            lr=params_dict['learning_rate'],
+            weight_decay=params_dict['weight_decay']
+        )
+
+        scheduler = ReduceLROnPlateau(optimizer, patience=3, factor=0.5)
+        criterion = CustomLoss(alpha=0.7)
+
         X_train_fold, X_val_fold = X[train_index], X[val_index]
         y_train_fold, y_val_fold = y[train_index], y[val_index]
         time_indices_train = np.array(indices)[train_index]
         time_indices_val = np.array(indices)[val_index]
 
-        # Apply data augmentation to the training fold
-        X_train_augmented, y_train_augmented = augment_data(X_train_fold, y_train_fold)
+        # Remove data augmentation to prevent NaN issues
+        # X_train_augmented, y_train_augmented = augment_data(X_train_fold, y_train_fold)
+        X_train_augmented, y_train_augmented = X_train_fold, y_train_fold
 
         # Convert to tensors
-        X_train_tensor = torch.tensor(X_train_augmented, dtype=torch.float32).to(device)
-        y_train_tensor = torch.tensor(y_train_augmented, dtype=torch.float32).unsqueeze(-1).to(device)
-        X_val_tensor = torch.tensor(X_val_fold, dtype=torch.float32).to(device)
-        y_val_tensor = torch.tensor(y_val_fold, dtype=torch.float32).unsqueeze(-1).to(device)
+        X_train_tensor = torch.tensor(X_train_augmented, dtype=torch.float32)
+        y_train_tensor = torch.tensor(y_train_augmented, dtype=torch.float32).unsqueeze(-1)
+        X_val_tensor = torch.tensor(X_val_fold, dtype=torch.float32)
+        y_val_tensor = torch.tensor(y_val_fold, dtype=torch.float32).unsqueeze(-1)
+
+        # Move tensors to device
+        X_train_tensor = X_train_tensor.to(device)
+        y_train_tensor = y_train_tensor.to(device)
+        X_val_tensor = X_val_tensor.to(device)
+        y_val_tensor = y_val_tensor.to(device)
 
         # Reset early stopping variables
         early_stopping_counter = 0
         best_val_loss = float('inf')
-        best_model_state = None
+        best_model_state = copy.deepcopy(model.state_dict())  # Initialize here
 
         # Track best validation RMSE
         epoch_metrics = []
@@ -946,7 +899,7 @@ for params in product(*hyperparams_grid.values()):
                 y_val_actual, y_val_pred, scaler=target_scaler, prefix="Validation "
             )
 
-            # Log metrics (set GARCH parameters to None)
+            # Log metrics
             log_epoch_data(
                 file_path=LOG_FILE,
                 epoch=epoch + 1,
@@ -976,10 +929,21 @@ for params in product(*hyperparams_grid.values()):
             )
 
             # Scheduler step
-            scheduler.step(val_loss)
+            if not np.isnan(val_loss) and not np.isinf(val_loss):
+                scheduler.step(val_loss)
 
             # Early stopping logic
-            if val_loss < best_val_loss:
+            if np.isnan(val_loss) or np.isinf(val_loss):
+                print(f"Validation loss is not a finite number at epoch {epoch + 1}. Skipping model state update.")
+                early_stopping_counter += 1
+                if early_stopping_counter >= EARLY_STOPPING_PATIENCE:
+                    print(f"Early stopping triggered at epoch {epoch + 1} due to NaN loss.")
+                    if best_model_state is not None:
+                        model.load_state_dict(best_model_state)
+                    else:
+                        print("Warning: best_model_state is None. Cannot load best model state.")
+                    break
+            elif val_loss < best_val_loss:
                 best_val_loss = val_loss
                 early_stopping_counter = 0
                 best_model_state = copy.deepcopy(model.state_dict())
@@ -987,7 +951,10 @@ for params in product(*hyperparams_grid.values()):
                 early_stopping_counter += 1
                 if early_stopping_counter >= EARLY_STOPPING_PATIENCE:
                     print(f"Early stopping triggered at epoch {epoch + 1}")
-                    model.load_state_dict(best_model_state)
+                    if best_model_state is not None:
+                        model.load_state_dict(best_model_state)
+                    else:
+                        print("Warning: best_model_state is None. Cannot load best model state.")
                     break
 
             val_abs_pip_diff = calculate_pip_difference(y_val_pred, y_val_actual, target_scaler)[1]
@@ -1046,15 +1013,12 @@ for params in product(*hyperparams_grid.values()):
         # After each fold
         fold += 1
 
-    # After training with the current hyperparameters
-    if best_val_loss < best_overall_val_loss:
-        best_overall_val_loss = best_val_loss
-        best_hyperparams = params_dict
-        final_model_state = best_model_state  # Save the best model state
-
 print(f"\nBest hyperparameters: {best_hyperparams}")
 # Load the best model state
-model.load_state_dict(final_model_state)
+
+if best_model_state is None:
+    print("Warning: best_model_state is None. Using the current model state instead.")
+    best_model_state = copy.deepcopy(model.state_dict())
 
 # Save metrics
 metrics_df = pd.DataFrame(epoch_metrics)
