@@ -1,0 +1,814 @@
+[
+    {
+        "label": "pandas",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "display_load_data",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "print_indicators",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "colored_print",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "print_status",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "plot_indicator_categories",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "execute_with_status",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "print_status",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "colored_print",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "matplotlib.pyplot",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "matplotlib.pyplot",
+        "description": "matplotlib.pyplot",
+        "detail": "matplotlib.pyplot",
+        "documentation": {}
+    },
+    {
+        "label": "tabulate",
+        "importPath": "tabulate",
+        "description": "tabulate",
+        "isExtraImport": true,
+        "detail": "tabulate",
+        "documentation": {}
+    },
+    {
+        "label": "tabulate",
+        "importPath": "tabulate",
+        "description": "tabulate",
+        "isExtraImport": true,
+        "detail": "tabulate",
+        "documentation": {}
+    },
+    {
+        "label": "torch",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "torch",
+        "description": "torch",
+        "detail": "torch",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "ta",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "ta",
+        "description": "ta",
+        "detail": "ta",
+        "documentation": {}
+    },
+    {
+        "label": "RSIIndicator",
+        "importPath": "ta.momentum",
+        "description": "ta.momentum",
+        "isExtraImport": true,
+        "detail": "ta.momentum",
+        "documentation": {}
+    },
+    {
+        "label": "ROCIndicator",
+        "importPath": "ta.momentum",
+        "description": "ta.momentum",
+        "isExtraImport": true,
+        "detail": "ta.momentum",
+        "documentation": {}
+    },
+    {
+        "label": "TSIIndicator",
+        "importPath": "ta.momentum",
+        "description": "ta.momentum",
+        "isExtraImport": true,
+        "detail": "ta.momentum",
+        "documentation": {}
+    },
+    {
+        "label": "UltimateOscillator",
+        "importPath": "ta.momentum",
+        "description": "ta.momentum",
+        "isExtraImport": true,
+        "detail": "ta.momentum",
+        "documentation": {}
+    },
+    {
+        "label": "MACD",
+        "importPath": "ta.trend",
+        "description": "ta.trend",
+        "isExtraImport": true,
+        "detail": "ta.trend",
+        "documentation": {}
+    },
+    {
+        "label": "EMAIndicator",
+        "importPath": "ta.trend",
+        "description": "ta.trend",
+        "isExtraImport": true,
+        "detail": "ta.trend",
+        "documentation": {}
+    },
+    {
+        "label": "CCIIndicator",
+        "importPath": "ta.trend",
+        "description": "ta.trend",
+        "isExtraImport": true,
+        "detail": "ta.trend",
+        "documentation": {}
+    },
+    {
+        "label": "ADXIndicator",
+        "importPath": "ta.trend",
+        "description": "ta.trend",
+        "isExtraImport": true,
+        "detail": "ta.trend",
+        "documentation": {}
+    },
+    {
+        "label": "IchimokuIndicator",
+        "importPath": "ta.trend",
+        "description": "ta.trend",
+        "isExtraImport": true,
+        "detail": "ta.trend",
+        "documentation": {}
+    },
+    {
+        "label": "ChaikinMoneyFlowIndicator",
+        "importPath": "ta.volume",
+        "description": "ta.volume",
+        "isExtraImport": true,
+        "detail": "ta.volume",
+        "documentation": {}
+    },
+    {
+        "label": "VolumeWeightedAveragePrice",
+        "importPath": "ta.volume",
+        "description": "ta.volume",
+        "isExtraImport": true,
+        "detail": "ta.volume",
+        "documentation": {}
+    },
+    {
+        "label": "PolynomialFeatures",
+        "importPath": "sklearn.preprocessing",
+        "description": "sklearn.preprocessing",
+        "isExtraImport": true,
+        "detail": "sklearn.preprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "StandardScaler",
+        "importPath": "sklearn.preprocessing",
+        "description": "sklearn.preprocessing",
+        "isExtraImport": true,
+        "detail": "sklearn.preprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "MinMaxScaler",
+        "importPath": "sklearn.preprocessing",
+        "description": "sklearn.preprocessing",
+        "isExtraImport": true,
+        "detail": "sklearn.preprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "Normalizer",
+        "importPath": "sklearn.preprocessing",
+        "description": "sklearn.preprocessing",
+        "isExtraImport": true,
+        "detail": "sklearn.preprocessing",
+        "documentation": {}
+    },
+    {
+        "label": "torch.nn",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "torch.nn",
+        "description": "torch.nn",
+        "detail": "torch.nn",
+        "documentation": {}
+    },
+    {
+        "label": "torch.optim",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "torch.optim",
+        "description": "torch.optim",
+        "detail": "torch.optim",
+        "documentation": {}
+    },
+    {
+        "label": "LassoCV",
+        "importPath": "sklearn.linear_model",
+        "description": "sklearn.linear_model",
+        "isExtraImport": true,
+        "detail": "sklearn.linear_model",
+        "documentation": {}
+    },
+    {
+        "label": "SelectFromModel",
+        "importPath": "sklearn.feature_selection",
+        "description": "sklearn.feature_selection",
+        "isExtraImport": true,
+        "detail": "sklearn.feature_selection",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "src.prepare_data_stats",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "seaborn",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "seaborn",
+        "description": "seaborn",
+        "detail": "seaborn",
+        "documentation": {}
+    },
+    {
+        "label": "adfuller",
+        "importPath": "statsmodels.tsa.stattools",
+        "description": "statsmodels.tsa.stattools",
+        "isExtraImport": true,
+        "detail": "statsmodels.tsa.stattools",
+        "documentation": {}
+    },
+    {
+        "label": "plot_acf",
+        "importPath": "statsmodels.graphics.tsaplots",
+        "description": "statsmodels.graphics.tsaplots",
+        "isExtraImport": true,
+        "detail": "statsmodels.graphics.tsaplots",
+        "documentation": {}
+    },
+    {
+        "label": "plot_pacf",
+        "importPath": "statsmodels.graphics.tsaplots",
+        "description": "statsmodels.graphics.tsaplots",
+        "isExtraImport": true,
+        "detail": "statsmodels.graphics.tsaplots",
+        "documentation": {}
+    },
+    {
+        "label": "seasonal_decompose",
+        "importPath": "statsmodels.tsa.seasonal",
+        "description": "statsmodels.tsa.seasonal",
+        "isExtraImport": true,
+        "detail": "statsmodels.tsa.seasonal",
+        "documentation": {}
+    },
+    {
+        "label": "TensorDataset",
+        "importPath": "torch.utils.data",
+        "description": "torch.utils.data",
+        "isExtraImport": true,
+        "detail": "torch.utils.data",
+        "documentation": {}
+    },
+    {
+        "label": "DataLoader",
+        "importPath": "torch.utils.data",
+        "description": "torch.utils.data",
+        "isExtraImport": true,
+        "detail": "torch.utils.data",
+        "documentation": {}
+    },
+    {
+        "label": "ReduceLROnPlateau",
+        "importPath": "torch.optim.lr_scheduler",
+        "description": "torch.optim.lr_scheduler",
+        "isExtraImport": true,
+        "detail": "torch.optim.lr_scheduler",
+        "documentation": {}
+    },
+    {
+        "label": "tqdm",
+        "importPath": "tqdm",
+        "description": "tqdm",
+        "isExtraImport": true,
+        "detail": "tqdm",
+        "documentation": {}
+    },
+    {
+        "label": "sqrt",
+        "importPath": "math",
+        "description": "math",
+        "isExtraImport": true,
+        "detail": "math",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "load_data",
+        "importPath": "src.data_loading",
+        "description": "src.data_loading",
+        "isExtraImport": true,
+        "detail": "src.data_loading",
+        "documentation": {}
+    },
+    {
+        "label": "preprocess_features",
+        "importPath": "src.feature_engineering",
+        "description": "src.feature_engineering",
+        "isExtraImport": true,
+        "detail": "src.feature_engineering",
+        "documentation": {}
+    },
+    {
+        "label": "add_technical_indicators",
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "isExtraImport": true,
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "prepare_data_full",
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "isExtraImport": true,
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "init_model",
+        "importPath": "src.model",
+        "description": "src.model",
+        "isExtraImport": true,
+        "detail": "src.model",
+        "documentation": {}
+    },
+    {
+        "label": "train_model",
+        "importPath": "src.training",
+        "description": "src.training",
+        "isExtraImport": true,
+        "detail": "src.training",
+        "documentation": {}
+    },
+    {
+        "label": "evaluate_model",
+        "importPath": "src.evaluate",
+        "description": "src.evaluate",
+        "isExtraImport": true,
+        "detail": "src.evaluate",
+        "documentation": {}
+    },
+    {
+        "label": "load_data",
+        "kind": 2,
+        "importPath": "src.data_loading",
+        "description": "src.data_loading",
+        "peekOfCode": "def load_data(file_path, start_index=None, end_index=None):\n    # Load the data, parsing the 'Date' column as datetime and setting it as the index\n    df = pd.read_csv(file_path, parse_dates=['Date'], index_col='Date')\n    # Sort the DataFrame by index (date)\n    df = df.sort_index()\n    # Remove duplicate timestamps\n    if df.index.duplicated().any():\n        print(\"Duplicate timestamps found. Removing duplicates.\")\n        df = df[~df.index.duplicated(keep='first')]\n    # Slice rows by numerical indices if start_index or end_index is provided",
+        "detail": "src.data_loading",
+        "documentation": {}
+    },
+    {
+        "label": "print_status",
+        "kind": 2,
+        "importPath": "src.display",
+        "description": "src.display",
+        "peekOfCode": "def print_status(is_ok):\n    \"\"\"\n    Prints [OK] in green if the input is True, and [KO] in red if the input is False.\n    \"\"\"\n    # ANSI escape codes for colors\n    GREEN = \"\\033[92m\"\n    RED = \"\\033[91m\"\n    RESET = \"\\033[0m\"\n    if is_ok:\n        print(f\"{GREEN}[OK]{RESET}\")",
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "colored_print",
+        "kind": 2,
+        "importPath": "src.display",
+        "description": "src.display",
+        "peekOfCode": "def colored_print(text, color='blue'):\n    # Define a dictionary of color codes\n    colors = {\n        'black': '30',\n        'red': '31',\n        'green': '32',\n        'yellow': '33',\n        'blue': '34',\n        'magenta': '35',\n        'cyan': '36',",
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "execute_with_status",
+        "kind": 2,
+        "importPath": "src.display",
+        "description": "src.display",
+        "peekOfCode": "def execute_with_status(title: str, func: callable, *args, **kwargs):\n    \"\"\"\n    Executes a given function and prints a title with a status message.\n    Args:\n        title (str): The title to print before execution.\n        func (callable): The function to execute.\n        *args: Positional arguments to pass to the function.\n        **kwargs: Keyword arguments to pass to the function.\n    Returns:\n        Any: The result of the function if executed successfully.",
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "print_indicators",
+        "kind": 2,
+        "importPath": "src.display",
+        "description": "src.display",
+        "peekOfCode": "def print_indicators(df):\n    poly_cols = [col for col in df.columns if col.startswith('poly_')]\n    # Define categories and their associated columns\n    indicator_categories = {\n        'Trend Indicators': ['RSI', 'MACD', 'EMA', 'CCI', 'ADX'],\n        'Momentum Indicators': ['ROC', 'TSI', 'UO'],\n        'Volume Indicators': ['CMF', 'VO'],\n        'Volatility Indicators': ['ATR', 'DC_H', 'DC_L', 'DC_M', 'DC_Width'],\n        'Additional Indicators': ['ICHIMOKU_A', 'ICHIMOKU_B', 'PSAR', 'VWAP', 'PP', 'R1', 'S1', 'R2', 'S2', 'R3', 'S3'],\n    }",
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "display_load_data",
+        "kind": 2,
+        "importPath": "src.display",
+        "description": "src.display",
+        "peekOfCode": "def display_load_data(df):\n    stats = [\n        [\"Data Length\", len(df)],\n        [\"Highest Value\", df[\"Close\"].max()],\n        [\"Lowest Value\", df[\"Close\"].min()],\n        [\"Mean Value\", df[\"Close\"].mean()],\n        [\"Standard Deviation\", df[\"Close\"].std()],\n        [\"Median Value\", df[\"Close\"].median()],\n        [\"Mode Value\", df[\"Close\"].mode()[0]],\n        [\"Variance Value\", df[\"Close\"].var()],",
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "plot_indicator_categories",
+        "kind": 2,
+        "importPath": "src.display",
+        "description": "src.display",
+        "peekOfCode": "def plot_indicator_categories(df, layout=(2,2), figsize=(12, 8), categories=None):\n    if categories is None:\n        categories = {\n        'trend': ['EMA', 'MACD', 'CCI', 'ADX'],\n        'momentum': ['RSI', 'ROC', 'TSI', 'UO'],\n        'volume': ['CMF', 'VO'],\n        'volatility': ['ATR', 'DC_H', 'DC_L', 'DC_M']\n        }\n    # Ensure the number of categories fits into the layout\n    n_cats = len(categories)",
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
+        "label": "evaluate_model",
+        "kind": 2,
+        "importPath": "src.evaluate",
+        "description": "src.evaluate",
+        "peekOfCode": "def evaluate_model(model, criterion, X_test_tensor, y_test_tensor, target_scaler, folder_name, epoch_number=1):\n    \"\"\"\n    Evaluate the model on the test dataset.\n    \"\"\"\n    model.eval()\n    # Ensure X_test_tensor has correct shape: (N_test, seq_len, num_features)\n    # If there's only one sample and it's missing batch dimension:\n    if X_test_tensor.ndimension() == 2:\n        # This means shape is (seq_len, features), reshape to (1, seq_len, features)\n        X_test_tensor = X_test_tensor.unsqueeze(0)",
+        "detail": "src.evaluate",
+        "documentation": {}
+    },
+    {
+        "label": "preprocess_features",
+        "kind": 2,
+        "importPath": "src.feature_engineering",
+        "description": "src.feature_engineering",
+        "peekOfCode": "def preprocess_features(df):\n    \"\"\"\n    Adds seasonal and cyclic features to the DataFrame.\n    Parameters:\n    - df (pd.DataFrame): Input DataFrame with a datetime index.\n    Returns:\n    - df (pd.DataFrame): DataFrame with added features.\n    \"\"\"\n    # Add hour of day as categorical features\n    df['Hour'] = df.index.hour",
+        "detail": "src.feature_engineering",
+        "documentation": {}
+    },
+    {
+        "label": "add_polynomial_and_interaction_features",
+        "kind": 2,
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "peekOfCode": "def add_polynomial_and_interaction_features(df, features, degree=2, interaction_only=False, include_bias=False):\n    \"\"\"\n    Adds polynomial and interaction features for specific features.\n    Parameters:\n    - df (pd.DataFrame): The DataFrame containing the features.\n    - features (list): List of feature names to include in polynomial feature generation.\n    - degree (int): The degree of the polynomial features.\n    - interaction_only (bool): If True, only interaction features are produced.\n    - include_bias (bool): If True, includes a bias column (column of ones).\n    Returns:",
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "add_rolling_statistics",
+        "kind": 2,
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "peekOfCode": "def add_rolling_statistics(df, windows=[5, 10, 15]):\n    \"\"\"\n    Adds rolling mean and standard deviation of 'Close' price.\n    \"\"\"\n    for window in windows:\n        df[f'Rolling_Mean_{window}'] = df['Close'].rolling(window=window).mean()\n        df[f'Rolling_Std_{window}'] = df['Close'].rolling(window=window).std()\n    df = df.dropna()\n    return df\ndef add_lag_features(df, lags=3):",
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "add_lag_features",
+        "kind": 2,
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "peekOfCode": "def add_lag_features(df, lags=3):\n    \"\"\"\n    Adds lagged versions of features to capture temporal dependencies.\n    \"\"\"\n    for lag in range(1, lags + 1):\n        df[f'CloseLag_{lag}'] = df['Close'].shift(lag)\n        df[f'VolumeLag_{lag}'] = df['Volume'].shift(lag)\n    df = df.dropna()\n    return df\ndef calculate_psar(df, step=0.02, max_step=0.2):",
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "calculate_psar",
+        "kind": 2,
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "peekOfCode": "def calculate_psar(df, step=0.02, max_step=0.2):\n    psar = df['Low'].copy()\n    psar.iloc[0] = df['Low'].iloc[0]\n    bullish = True\n    af = step\n    ep = df['High'].iloc[0]\n    for i in range(1, len(df)):\n        previous_psar = psar.iloc[i-1]\n        if bullish:\n            psar.iloc[i] = previous_psar + af * (ep - previous_psar)",
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "add_volume_oscillator",
+        "kind": 2,
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "peekOfCode": "def add_volume_oscillator(df, window_fast=12, window_slow=26):\n    df['MA_Fast_Volume'] = df['Volume'].rolling(window=window_fast).mean()\n    df['MA_Slow_Volume'] = df['Volume'].rolling(window=window_slow).mean()\n    df['VO'] = (df['MA_Fast_Volume'] - df['MA_Slow_Volume']) / df['MA_Slow_Volume'] * 100\n    df.drop(['MA_Fast_Volume', 'MA_Slow_Volume'], axis=1, inplace=True)\n    df = df.dropna()\n    return df\ndef add_pivot_points(df):\n    # Create a copy to avoid the warning\n    df = df.copy()",
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "add_pivot_points",
+        "kind": 2,
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "peekOfCode": "def add_pivot_points(df):\n    # Create a copy to avoid the warning\n    df = df.copy()\n    df['PP'] = (df['High'] + df['Low'] + df['Close']) / 3\n    df['R1'] = (2 * df['PP']) - df['Low']\n    df['S1'] = (2 * df['PP']) - df['High']\n    df['R2'] = df['PP'] + (df['High'] - df['Low'])\n    df['S2'] = df['PP'] - (df['High'] - df['Low'])\n    df['R3'] = df['High'] + 2 * (df['PP'] - df['Low'])\n    df['S3'] = df['Low'] - 2 * (df['High'] - df['PP'])",
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "add_technical_indicators",
+        "kind": 2,
+        "importPath": "src.indicators",
+        "description": "src.indicators",
+        "peekOfCode": "def add_technical_indicators(\n    df, \n    horizon=1, \n    indicator_types=None, \n    metrics_folder='metrics'\n):\n    # Default to all indicators if indicator_types is not provided\n    if indicator_types is None:\n        indicator_types = {\n            \"trend\": True,",
+        "detail": "src.indicators",
+        "documentation": {}
+    },
+    {
+        "label": "LSTMTransformerForex",
+        "kind": 6,
+        "importPath": "src.model",
+        "description": "src.model",
+        "peekOfCode": "class LSTMTransformerForex(nn.Module):\n    def __init__(self, input_dim, lstm_hidden_dim=64, lstm_layers=1, \n                 transformer_dim=64, nhead=4, num_transformer_layers=2, \n                 fc_dim=1, dropout=0.1):\n        super(LSTMTransformerForex, self).__init__()\n        self.lstm = nn.LSTM(input_size=input_dim,\n                            hidden_size=lstm_hidden_dim,\n                            num_layers=lstm_layers,\n                            batch_first=True,\n                            dropout=dropout if lstm_layers > 1 else 0)",
+        "detail": "src.model",
+        "documentation": {}
+    },
+    {
+        "label": "init_model",
+        "kind": 2,
+        "importPath": "src.model",
+        "description": "src.model",
+        "peekOfCode": "def init_model(input_dim, lstm_hidden_dim=64, lstm_layers=1, \n               transformer_dim=64, nhead=4, num_transformer_layers=2, \n               fc_dim=1, dropout=0.1, lr=0.001):\n    model = LSTMTransformerForex(input_dim=input_dim,\n                                 lstm_hidden_dim=lstm_hidden_dim,\n                                 lstm_layers=lstm_layers,\n                                 transformer_dim=transformer_dim,\n                                 nhead=nhead,\n                                 num_transformer_layers=num_transformer_layers,\n                                 fc_dim=fc_dim,",
+        "detail": "src.model",
+        "documentation": {}
+    },
+    {
+        "label": "prepare_data",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def prepare_data(df, horizon=1):\n    df = df.copy()\n    df = df.loc[:, ~df.columns.duplicated()]\n    # Ensure only the 'Close' column is shifted\n    shifted = df['Close'].shift(-horizon)  # Extract only the 'Close' column and shift it\n    # Remove the last 'horizon' rows from both df and shifted\n    df = df.iloc[:-horizon].reset_index(drop=True)\n    shifted = shifted.iloc[:-horizon].reset_index(drop=True)\n    # Assign the shifted column as the 'Target'\n    df['Target'] = shifted",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "remove_multicollinearity",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def remove_multicollinearity(df, threshold=0.9, essential_features=None):\n    if essential_features is None:\n        essential_features = []\n    colored_print(\"Removing Colinearity:\")\n    colored_print(\"  Essential features before expansion:\" + ' '.join(str(x) for x in essential_features), \"yellow\")\n    # If \"Lag\" is specified as essential, then mark all columns containing \"Lag\" as essential\n    # Similarly, you can add logic for \"Close\" or any other substring if needed.\n    expanded_essential = set(essential_features)\n    for col in df.columns:\n        if 'VolumeLag' in essential_features:",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "treat_outliers_iqr",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def treat_outliers_iqr(df, multiplier=3.0):\n    df = df.copy()\n    numeric_cols = df.select_dtypes(include=[np.number]).columns\n    changes = {}\n    for col in numeric_cols:\n        Q1 = df[col].quantile(0.25)\n        Q3 = df[col].quantile(0.75)\n        IQR = Q3 - Q1\n        lower_bound = Q1 - multiplier * IQR\n        upper_bound = Q3 + multiplier * IQR",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "split_data",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def split_data(df, test_size=0.05):\n    \"\"\"\n    Splits the data into training and test sets chronologically.\n    \"\"\"\n    split_index = int(len(df) * (1 - test_size))\n    X = df.drop('Target', axis=1)\n    y = df['Target']\n    X_train = X.iloc[:split_index]\n    X_test = X.iloc[split_index:]\n    y_train = y.iloc[:split_index]",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "scale_data",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def scale_data(X_train, X_test, y_train, y_test , scaler_type=None):\n    \"\"\"\n    Scales features and target variable using StandardScaler.\n    \"\"\"\n    if scaler_type != None:\n        if scaler_type == \"Standard\":\n            colored_print(\"Standardize data\", \"green\")\n            feature_scaler = StandardScaler()\n            target_scaler = StandardScaler()\n        if scaler_type == 'MinMax':",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "create_sequences",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def create_sequences(features, targets, sequence_length, horizon):\n    X, y = [], []\n    print(\"range\", len(features) - sequence_length - horizon)\n    for i in range(len(features) - sequence_length - horizon):\n        X_seq = features.iloc[i:(i + sequence_length)]  # Select rows by position\n        y_target = targets.iloc[i + sequence_length]     # Target corresponding to the end of the sequence\n        if i == 0:\n            print(\"features:\", features.iloc[i + sequence_length][\"Close\"], \n                  \"target:\", targets.iloc[i + sequence_length - horizon])\n        X.append(X_seq.values)  # Convert the selected DataFrame slice to a NumPy array",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "keep_only_essential_features",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def keep_only_essential_features(df, essential_features):\n    \"\"\"\n    Drops all features except the essential features.\n    \"\"\"\n    expanded_essential = set()\n    df_cols = set(df.columns)\n    # Identify all columns that contain 'CloseLag' or 'VolumeLag'\n    close_lag_cols = [c for c in df.columns if 'CloseLag' in c]\n    volume_lag_cols = [c for c in df.columns if 'VolumeLag' in c]\n    for feat in essential_features:",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "prepare_data_full",
+        "kind": 2,
+        "importPath": "src.prepare_data",
+        "description": "src.prepare_data",
+        "peekOfCode": "def prepare_data_full(df, SEQUENCE_LENGTH=60, horizon=1, scale=None):\n    essential_features = ['Close', \"High\", \"Low\", \"Open\", \"Volume\", \"CloseLag\", \"VolumeLag\", \"MACD\", \"RSI\", \"ROC\", \"VO\", \"ATR\"]\n    df = execute_with_status(\"Prepare the data:\", prepare_data, df, horizon=horizon)\n    df = execute_with_status(\"Handle multicollinearity:\", remove_multicollinearity, df, threshold=0.8, essential_features=essential_features)\n    df = execute_with_status(\"Keep only essential features:\",keep_only_essential_features,df,essential_features)\n    plot_indicator_categories(df)\n    # Data Splitting\n    X_train, X_test, y_train, y_test = execute_with_status(\"SPLIT the data:\", split_data, df, test_size=0.04)\n    # Scale data after splitting\n    X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled, target_scaler = execute_with_status(\"SCALE the data:\", scale_data, X_train, X_test,y_train,y_test, scale)",
+        "detail": "src.prepare_data",
+        "documentation": {}
+    },
+    {
+        "label": "compute_descriptive_stats",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def compute_descriptive_stats(df):\n    \"\"\"\n    Computes descriptive statistics for each feature in the DataFrame.\n    Parameters:\n    - df (pd.DataFrame): The DataFrame containing the features.\n    Returns:\n    - stats (pd.DataFrame): A DataFrame containing the descriptive statistics.\n    \"\"\"\n    stats = df.describe().transpose()\n    return stats",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "plot_correlation_matrix",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def plot_correlation_matrix(df):\n    \"\"\"\n    Plots the correlation matrix heatmap of the DataFrame.\n    Parameters:\n    - df (pd.DataFrame): The DataFrame containing the features and target.\n    \"\"\"\n    corr = df.corr()\n    plt.figure(figsize=(16, 12))\n    sns.heatmap(corr, annot=True, fmt=\".2f\", cmap='coolwarm')\n    plt.title('Correlation Matrix Heatmap')",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "plot_feature_distributions",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def plot_feature_distributions(df, features):\n    \"\"\"\n    Plots the distribution of specified features.\n    Parameters:\n    - df (pd.DataFrame): The DataFrame containing the features.\n    - features (list): List of feature names to plot.\n    \"\"\"\n    import math\n    num_features = len(features)\n    num_cols = 3",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "plot_time_series",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def plot_time_series(df, features, start_date=None, end_date=None):\n    \"\"\"\n    Plots time series of specified features.\n    Parameters:\n    - df (pd.DataFrame): The DataFrame containing the features.\n    - features (list): List of feature names to plot.\n    - start_date (str): Start date for the plot (optional).\n    - end_date (str): End date for the plot (optional).\n    \"\"\"\n    df_plot = df.copy()",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "test_stationarity",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def test_stationarity(timeseries, title='Time Series'):\n    \"\"\"\n    Performs the Augmented Dickey-Fuller test to check stationarity.\n    Parameters:\n    - timeseries (pd.Series): The time series to test.\n    - title (str): Title for the plot.\n    \"\"\"\n    # Rolling statistics\n    rolmean = timeseries.rolling(window=12).mean()\n    rolstd = timeseries.rolling(window=12).std()",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "plot_acf_pacf",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def plot_acf_pacf(timeseries, lags=50, title='Time Series'):\n    \"\"\"\n    Plots the Autocorrelation Function (ACF) and Partial Autocorrelation Function (PACF).\n    Parameters:\n    - timeseries (pd.Series): The time series data.\n    - lags (int): Number of lags to display.\n    - title (str): Title for the plots.\n    \"\"\"\n    plt.figure(figsize=(14, 7))\n    plt.subplot(121)",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "compute_feature_target_correlation",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def compute_feature_target_correlation(df, target_column='Target'):\n    \"\"\"\n    Computes the correlation between each feature and the target variable.\n    Parameters:\n    - df (pd.DataFrame): DataFrame containing features and target.\n    - target_column (str): Name of the target column.\n    Returns:\n    - corr_df (pd.DataFrame): DataFrame of feature-target correlations.\n    \"\"\"\n    corr = df.corr()[target_column].drop(target_column)",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "check_missing_data",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def check_missing_data(df):\n    \"\"\"\n    Checks for missing data in the DataFrame.\n    Parameters:\n    - df (pd.DataFrame): The DataFrame to check.\n    Returns:\n    - missing_data (pd.Series): Series indicating the count of missing values per column.\n    \"\"\"\n    missing_data = df.isnull().sum()\n    missing_data = missing_data[missing_data > 0]",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "detect_outliers_zscore",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def detect_outliers_zscore(df, threshold=3.0):\n    \"\"\"\n    Detects outliers in the DataFrame using the Z-score method.\n    Parameters:\n    - df (pd.DataFrame): The DataFrame containing features.\n    - threshold (float): Z-score threshold to consider a data point an outlier.\n    Returns:\n    - outliers (dict): Dictionary with feature names as keys and indices of outliers as values.\n    \"\"\"\n    from scipy import stats",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "decompose_time_series",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def decompose_time_series(timeseries, model='additive', freq=None):\n    \"\"\"\n    Decomposes the time series into trend, seasonal, and residual components.\n    Parameters:\n    - timeseries (pd.Series): The time series data.\n    - model (str): 'additive' or 'multiplicative' model.\n    - freq (int): Frequency of the series (e.g., 12 for monthly data).\n    Returns:\n    - decomposition: Decomposition object.\n    \"\"\"",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "analyse_prepared_data",
+        "kind": 2,
+        "importPath": "src.prepare_data_stats",
+        "description": "src.prepare_data_stats",
+        "peekOfCode": "def analyse_prepared_data(df, essential_feature):\n    \"\"\"\n    Performs exploratory data analysis on the prepared data.\n    Parameters:\n    - df (pd.DataFrame): The prepared DataFrame with features and target.\n    \"\"\"\n    # 1. Descriptive Statistics\n    stats = compute_descriptive_stats(df)\n    print(\"Descriptive Statistics:\")\n    print(stats)",
+        "detail": "src.prepare_data_stats",
+        "documentation": {}
+    },
+    {
+        "label": "plot_epoch_results",
+        "kind": 2,
+        "importPath": "src.training",
+        "description": "src.training",
+        "peekOfCode": "def plot_epoch_results(epoch, folder_name, \n                       scaled_targets, scaled_predictions, \n                       non_scaled_targets, non_scaled_predictions,\n                       residuals, rmse, mae, mape):\n    if not os.path.exists(folder_name):\n        os.makedirs(folder_name)\n    fig, axs = plt.subplots(2, 2, figsize=(12, 8))\n    # Top Left: Non-scaled real vs predicted\n    axs[0, 0].plot(non_scaled_targets, label='Real (Non-Scaled)')\n    axs[0, 0].plot(non_scaled_predictions, label='Predicted (Non-Scaled)')",
+        "detail": "src.training",
+        "documentation": {}
+    },
+    {
+        "label": "train_model",
+        "kind": 2,
+        "importPath": "src.training",
+        "description": "src.training",
+        "peekOfCode": "def train_model(\n    model, \n    criterion, \n    optimizer, \n    X_train_seq, \n    y_train_seq,\n    X_test_seq,\n    y_test_seq,\n    epochs=50, \n    batch_size=32, ",
+        "detail": "src.training",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "main",
+        "description": "main",
+        "peekOfCode": "def main():\n    # Configure paths\n    data_file = os.path.join('data', 'EURUSD_M1.csv')\n    now = time.time()\n    folder_name = 'Epoch_{}'.format(now)\n    if not os.path.exists(folder_name):\n        os.makedirs(folder_name)\n    SEQUENCE_LENGTH = 60  # Adjust as needed\n    START_INDEX = 1\n    END_INDEX = 20000",
+        "detail": "main",
+        "documentation": {}
+    }
+]
