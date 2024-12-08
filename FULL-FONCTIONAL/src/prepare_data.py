@@ -8,7 +8,9 @@ import logging
 import src.prepare_data_stats as pds
 import matplotlib.pyplot as plt
 import os
+from tabulate import tabulate
 from src.display import colored_print, print_status, plot_indicator_categories, execute_with_status
+
 
 
 def prepare_data(df, horizon=1):
@@ -110,7 +112,17 @@ def treat_outliers_iqr(df, multiplier=3.0):
 
 def split_data(df, test_size=0.05):
     """
-    Splits the data into training and test sets chronologically.
+    Splits the data into training and test sets chronologically and prints a tabulated summary of statistics.
+    
+    Parameters:
+    - df (pd.DataFrame): The input DataFrame containing features and the 'Target' column.
+    - test_size (float): The fraction of data to be used as the test set.
+    
+    Returns:
+    - X_train (pd.DataFrame): Training features.
+    - X_test (pd.DataFrame): Test features.
+    - y_train (pd.Series): Training targets.
+    - y_test (pd.Series): Test targets.
     """
     split_index = int(len(df) * (1 - test_size))
     X = df.drop('Target', axis=1)
@@ -121,11 +133,56 @@ def split_data(df, test_size=0.05):
     y_train = y.iloc[:split_index]
     y_test = y.iloc[split_index:]
 
-    # Debugging: Check size using f-strings
-    colored_print(f"X_train_len_split: {len(X_train)} {X_train.shape}")
-    colored_print(f"y_train_len_split: {len(y_train)} {y_train.shape}")
-    colored_print(f"X_test_len_split: {len(X_test)} {X_test.shape}")
-    colored_print(f"y_test_len_split: {len(y_test)} {y_test.shape}")
+    # Define the statistics to compute
+    statistics = [
+        "Data Length",
+        "Highest Value",
+        "Lowest Value",
+        "Mean Value",
+        "Standard Deviation",
+        "Median Value",
+        "Mode Value",
+        "Variance",
+        "Skewness",
+        "Kurtosis"
+    ]
+
+    # Function to compute statistics for a given Series
+    def compute_stats(series):
+        return [
+            len(series),
+            series.max(),
+            series.min(),
+            series.mean(),
+            series.std(),
+            series.median(),
+            series.mode()[0] if not series.mode().empty else np.nan,
+            series.var(),
+            series.skew(),
+            series.kurt()
+        ]
+
+    # Compute statistics for 'Close' column in training and test sets
+    train_close = X_train["Close"]
+    test_close = X_test["Close"]
+
+    train_stats = compute_stats(train_close)
+    test_stats = compute_stats(test_close)
+
+    # Create a DataFrame for the statistics
+    stats_df = pd.DataFrame({
+        "Statistic": statistics,
+        "Train": train_stats,
+        "Test": test_stats
+    })
+
+    # Print the table using tabulate for better formatting
+    try:
+        table = tabulate(stats_df, headers="keys", tablefmt="psql", showindex=False)
+        print(table)
+    except ImportError:
+        # Fallback to pandas' built-in display if tabulate is not installed
+        print(stats_df.to_string(index=False))
 
     return X_train, X_test, y_train, y_test
 
@@ -214,17 +271,17 @@ def keep_only_essential_features(df, essential_features):
     return df
 
 
-def prepare_data_full(df, SEQUENCE_LENGTH=60, horizon=1, scale=None):
+def prepare_data_full(df, essential_features, keep=False, SEQUENCE_LENGTH=60, horizon=1, scale=None, split_ratio=0.04):
     
-    essential_features = ['Close', "High", "Low", "Open", "Volume", "CloseLag", "VolumeLag", "MACD", "RSI", "ROC", "VO", "ATR"]
     
     df = execute_with_status("Prepare the data:", prepare_data, df, horizon=horizon)
     df = execute_with_status("Handle multicollinearity:", remove_multicollinearity, df, threshold=0.8, essential_features=essential_features)
-    df = execute_with_status("Keep only essential features:",keep_only_essential_features,df,essential_features)
+    if keep is True:
+        df = execute_with_status("Keep only essential features:",keep_only_essential_features,df,essential_features)
     plot_indicator_categories(df)
     
     # Data Splitting
-    X_train, X_test, y_train, y_test = execute_with_status("SPLIT the data:", split_data, df, test_size=0.04)
+    X_train, X_test, y_train, y_test = execute_with_status("SPLIT the data:", split_data, df, test_size=split_ratio)
     
     # Scale data after splitting
     X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled, target_scaler = execute_with_status("SCALE the data:", scale_data, X_train, X_test,y_train,y_test, scale)

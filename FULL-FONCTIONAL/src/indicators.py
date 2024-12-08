@@ -5,7 +5,7 @@ from ta.trend import MACD, EMAIndicator, CCIIndicator, ADXIndicator, IchimokuInd
 from ta.volume import ChaikinMoneyFlowIndicator, VolumeWeightedAveragePrice
 from sklearn.preprocessing import PolynomialFeatures
 import pandas as pd
-from src.display import print_indicators
+from src.display import colored_print, print_indicators
 
 def add_polynomial_and_interaction_features(df, features, degree=2, interaction_only=False, include_bias=False):
     """
@@ -149,6 +149,7 @@ def add_technical_indicators(
 
     # Trend Indicators
     if indicator_types.get("trend", True):
+        colored_print("Add Trand Indicators", "green")
         df["RSI"] = RSIIndicator(close=df["Close"], window=14).rsi()
         df["MACD"] = MACD(close=df["Close"]).macd_diff()
         df["EMA"] = EMAIndicator(close=df["Close"], window=20).ema_indicator()
@@ -157,18 +158,21 @@ def add_technical_indicators(
 
     # Momentum Indicators
     if indicator_types.get("momentum", True):
+        colored_print("Add Momentum Indicators", "green")
         df["ROC"] = ROCIndicator(close=df["Close"], window=20).roc()
         df["TSI"] = TSIIndicator(close=df["Close"]).tsi()
         df["UO"] = UltimateOscillator(high=df["High"], low=df["Low"], close=df["Close"]).ultimate_oscillator()
 
     # Volume Indicators
     if indicator_types.get("volume", True):
+        colored_print("Add Volume Indicators", "green")
         df["CMF"] = ChaikinMoneyFlowIndicator(
             high=df["High"], low=df["Low"], close=df["Close"], volume=df["Volume"], window=20
         ).chaikin_money_flow()
 
     # Volatility Indicators
     if indicator_types.get("volatility", True):
+        colored_print("Add Volatility Indicators", "green")
         df["ATR"] = ta.volatility.AverageTrueRange(
             high=df["High"], low=df["Low"], close=df["Close"], window=14
         ).average_true_range()
@@ -185,6 +189,7 @@ def add_technical_indicators(
 
     # Additional Indicators
     if indicator_types.get("additional", True):
+        colored_print("Add Additional Indicators", "green")
         ichimoku = IchimokuIndicator(high=df["High"], low=df["Low"], window1=9, window2=26, window3=52)
         df["ICHIMOKU_A"] = ichimoku.ichimoku_a()
         df["ICHIMOKU_B"] = ichimoku.ichimoku_b()
@@ -195,22 +200,26 @@ def add_technical_indicators(
 
     # Vol Oscillator
     if indicator_types.get("vol_oscillator", True):
+        colored_print("Add VO Indicators", "green")
         df = add_volume_oscillator(df, window_fast=12, window_slow=26)
 
     # Pivot Points
     if indicator_types.get("pivot_point", True):
+        colored_print("Add PP Indicators", "green")
         df = add_pivot_points(df)
 
     # Lag Features
     if indicator_types.get("lag", True):
+        colored_print("Add Lag Indicators", "green")
         df = add_lag_features(df, 10)
 
     # Rolling Statistics
     if indicator_types.get("rolling", True):
+        colored_print("Add Rolling Indicators", "green")
         df = add_rolling_statistics(df)
 
     # Polynomial Features
-    features_to_expand = ['Close', 'Volume', 'RSI', 'MACD']
+    features_to_expand = ['Close', 'Volume', 'RSI', 'MACD', "VO"]
     if indicator_types.get("polynomial", True):
         df = add_polynomial_and_interaction_features(
             df,

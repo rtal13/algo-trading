@@ -1,7 +1,6 @@
-# src/data_loading.py
-
 import pandas as pd
 from src.display import display_load_data
+
 
 def load_data(file_path, start_index=None, end_index=None):
 
@@ -19,5 +18,5 @@ def load_data(file_path, start_index=None, end_index=None):
     # Slice rows by numerical indices if start_index or end_index is provided
     if start_index is not None or end_index is not None:
         df = df.iloc[start_index:end_index]
-    
+    print("Data Loaded!")
     return df

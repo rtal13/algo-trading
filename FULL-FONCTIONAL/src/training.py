@@ -7,6 +7,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 from math import sqrt
 import matplotlib.pyplot as plt
+from src.display import colored_print
 
 def plot_epoch_results(epoch, folder_name, 
                        scaled_targets, scaled_predictions, 
@@ -54,7 +55,6 @@ def plot_epoch_results(epoch, folder_name,
     plot_path = os.path.join(folder_name, f'Epoch{epoch}.png')
     plt.savefig(plot_path)
     plt.close(fig)
-    print(f"Plot saved: {plot_path}")
 
 
 def train_model(
@@ -98,6 +98,7 @@ def train_model(
         # Training
         model.train()
         train_loss = 0.0
+        print("\n")
         with tqdm(train_loader, desc=f"Epoch {epoch}/{epochs}", unit="batch") as t:
             for batch_x, batch_y in t:
                 optimizer.zero_grad()
@@ -128,7 +129,7 @@ def train_model(
         predictions_array = np.concatenate(predictions_list, axis=0)  # (val_samples, 1)
         targets_array = np.concatenate(targets_list, axis=0)          # (val_samples, 1)
 
-        print(f"Epoch [{epoch}/{epochs}] - Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+        colored_print(f"Epoch [{epoch}/{epochs}] - Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}", "magenta")
         scheduler.step(val_loss)
 
         # Early stopping check
@@ -136,11 +137,11 @@ def train_model(
             best_val_loss = val_loss
             epochs_no_improve = 0
             torch.save(model.state_dict(), best_model_path)
-            print(f"Validation loss improved. Model saved: {best_model_path}")
+            colored_print(f"Validation loss improved. Model saved: {best_model_path}", "green")
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= patience:
-                print("Early stopping triggered.")
+                colored_print("Early stopping triggered.", "red")
                 # We'll plot for the last epoch and then break
                 # If you prefer not to plot on the last epoch after triggering, just break here
                 pass
@@ -176,5 +177,5 @@ def train_model(
             break
 
     model.load_state_dict(torch.load(best_model_path))
-    print(f"Training complete. Best validation loss: {best_val_loss:.4f}")
+    colored_print(f"Training complete. Best validation loss: {best_val_loss:.4f}")
     return model

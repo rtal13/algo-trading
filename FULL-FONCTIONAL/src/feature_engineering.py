@@ -38,4 +38,5 @@ def preprocess_features(df):
     
     # Drop the original Hour, DayOfWeek, Month columns if not needed
     df.drop(['Hour', 'DayOfWeek', 'Month'], axis=1, inplace=True)
+    print("Seasonality Done!")
     return df

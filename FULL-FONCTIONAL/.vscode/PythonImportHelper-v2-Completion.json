@@ -17,6 +17,14 @@
         "documentation": {}
     },
     {
+        "label": "colored_print",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
         "label": "print_indicators",
         "importPath": "src.display",
         "description": "src.display",
@@ -57,6 +65,14 @@
         "documentation": {}
     },
     {
+        "label": "colored_print",
+        "importPath": "src.display",
+        "description": "src.display",
+        "isExtraImport": true,
+        "detail": "src.display",
+        "documentation": {}
+    },
+    {
         "label": "print_status",
         "importPath": "src.display",
         "description": "src.display",
@@ -79,6 +95,14 @@
         "importPath": "matplotlib.pyplot",
         "description": "matplotlib.pyplot",
         "detail": "matplotlib.pyplot",
+        "documentation": {}
+    },
+    {
+        "label": "tabulate",
+        "importPath": "tabulate",
+        "description": "tabulate",
+        "isExtraImport": true,
+        "detail": "tabulate",
         "documentation": {}
     },
     {
@@ -452,6 +476,14 @@
         "documentation": {}
     },
     {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
         "label": "load_data",
         "kind": 2,
         "importPath": "src.data_loading",
@@ -645,7 +677,7 @@
         "kind": 2,
         "importPath": "src.prepare_data",
         "description": "src.prepare_data",
-        "peekOfCode": "def split_data(df, test_size=0.05):\n    \"\"\"\n    Splits the data into training and test sets chronologically.\n    \"\"\"\n    split_index = int(len(df) * (1 - test_size))\n    X = df.drop('Target', axis=1)\n    y = df['Target']\n    X_train = X.iloc[:split_index]\n    X_test = X.iloc[split_index:]\n    y_train = y.iloc[:split_index]",
+        "peekOfCode": "def split_data(df, test_size=0.05):\n    \"\"\"\n    Splits the data into training and test sets chronologically and prints a tabulated summary of statistics.\n    Parameters:\n    - df (pd.DataFrame): The input DataFrame containing features and the 'Target' column.\n    - test_size (float): The fraction of data to be used as the test set.\n    Returns:\n    - X_train (pd.DataFrame): Training features.\n    - X_test (pd.DataFrame): Test features.\n    - y_train (pd.Series): Training targets.",
         "detail": "src.prepare_data",
         "documentation": {}
     },
@@ -681,7 +713,7 @@
         "kind": 2,
         "importPath": "src.prepare_data",
         "description": "src.prepare_data",
-        "peekOfCode": "def prepare_data_full(df, SEQUENCE_LENGTH=60, horizon=1, scale=None):\n    essential_features = ['Close', \"High\", \"Low\", \"Open\", \"Volume\", \"CloseLag\", \"VolumeLag\", \"MACD\", \"RSI\", \"ROC\", \"VO\", \"ATR\"]\n    df = execute_with_status(\"Prepare the data:\", prepare_data, df, horizon=horizon)\n    df = execute_with_status(\"Handle multicollinearity:\", remove_multicollinearity, df, threshold=0.8, essential_features=essential_features)\n    df = execute_with_status(\"Keep only essential features:\",keep_only_essential_features,df,essential_features)\n    plot_indicator_categories(df)\n    # Data Splitting\n    X_train, X_test, y_train, y_test = execute_with_status(\"SPLIT the data:\", split_data, df, test_size=0.04)\n    # Scale data after splitting\n    X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled, target_scaler = execute_with_status(\"SCALE the data:\", scale_data, X_train, X_test,y_train,y_test, scale)",
+        "peekOfCode": "def prepare_data_full(df, essential_features, keep=False, SEQUENCE_LENGTH=60, horizon=1, scale=None, split_ratio=0.04):\n    df = execute_with_status(\"Prepare the data:\", prepare_data, df, horizon=horizon)\n    df = execute_with_status(\"Handle multicollinearity:\", remove_multicollinearity, df, threshold=0.8, essential_features=essential_features)\n    if keep is True:\n        df = execute_with_status(\"Keep only essential features:\",keep_only_essential_features,df,essential_features)\n    plot_indicator_categories(df)\n    # Data Splitting\n    X_train, X_test, y_train, y_test = execute_with_status(\"SPLIT the data:\", split_data, df, test_size=split_ratio)\n    # Scale data after splitting\n    X_train_scaled, X_test_scaled, y_train_scaled, y_test_scaled, target_scaler = execute_with_status(\"SCALE the data:\", scale_data, X_train, X_test,y_train,y_test, scale)",
         "detail": "src.prepare_data",
         "documentation": {}
     },
@@ -807,7 +839,7 @@
         "kind": 2,
         "importPath": "main",
         "description": "main",
-        "peekOfCode": "def main():\n    # Configure paths\n    data_file = os.path.join('data', 'EURUSD_M1.csv')\n    now = time.time()\n    folder_name = 'Epoch_{}'.format(now)\n    if not os.path.exists(folder_name):\n        os.makedirs(folder_name)\n    SEQUENCE_LENGTH = 60  # Adjust as needed\n    START_INDEX = 1\n    END_INDEX = 20000",
+        "peekOfCode": "def main():\n    # Configure paths\n    #PREPRATION DATA CONFIG\n    scalers_choice = [\"Standard\", \"Normalize\", \"MinMax\", None]\n    START_INDEX = 1\n    END_INDEX = 80000\n    SEQUENCE_LENGTH = 32  # Adjust as needed\n    HORIZON = 2  # Forecast horizon\n    SPLIT_RATIO = 0.01\n    KEEP = False",
         "detail": "main",
         "documentation": {}
     }
